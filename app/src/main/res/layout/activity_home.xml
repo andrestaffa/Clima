@@ -4,9 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#3e75f1"
+    android:layout_gravity="center_horizontal"
     android:theme="@style/Theme.Clima.NoActionBar"
-    tools:context=".HomeActivity">
+    tools:context=".Main.HomeActivity">
 
 
     <ImageView
@@ -21,7 +23,6 @@
         android:scaleType="centerCrop"
         android:src="@drawable/search_icon"
         app:tint="@color/white" />
-
 
     <TextView
         android:id="@+id/locationNameTextView"
