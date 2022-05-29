@@ -5,15 +5,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.calculatedinc.clima.Manager.APIManager;
+import com.calculatedinc.clima.Manager.Utils;
 import com.calculatedinc.clima.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,18 +36,32 @@ import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
+    // Calgary, Alberta 51.049999, -114.066666
+
     // UI Fields
     private View mDecorView;
+    private TextView locationNameTextView, dateTextView, temperatureTextView, climateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        this.mDecorView = getWindow().getDecorView();
-        this.mDecorView.setOnSystemUiVisibilityChangeListener((i) -> mDecorView.setSystemUiVisibility(hideSystemBars()));
 
         this.setupLocation();
         this.setupPlaces();
+
+        this.mDecorView = getWindow().getDecorView();
+        this.mDecorView.setOnSystemUiVisibilityChangeListener((i) -> mDecorView.setSystemUiVisibility(hideSystemBars()));
+
+        this.locationNameTextView = findViewById(R.id.locationNameTextView);
+        this.dateTextView = findViewById(R.id.dateTextView);
+        this.temperatureTextView = findViewById(R.id.tempTextView);
+        this.climateTextView = findViewById(R.id.climateTextView);
+
+        this.temperatureTextView.setText(Html.fromHtml("25<sup><small>°</small></sup>"));
+        this.dateTextView.setText(Utils.shared.getCurrentDate());
+
+        APIManager.shared.getWeatherData(51.049999, -114.066666);
 
     }
 
@@ -90,10 +108,10 @@ public class HomeActivity extends AppCompatActivity {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(1000 * 30);
         locationRequest.setFastestInterval(1000 * 5);
-        locationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this::getLastLocation);
-        else requestPermissions(new String[] { Manifest.permission.ACCESS_COARSE_LOCATION }, 44);
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this::getLastLocation);
+        else requestPermissions(new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 44);
     }
 
     @Override
@@ -107,7 +125,9 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void getLastLocation(Location location) {
-        Toast.makeText(this, "Latitude: " + location.getLatitude() +  "\nLongitude: " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+        if (location != null) {
+            Toast.makeText(this, "Latitude: " + location.getLatitude() +  "\nLongitude: " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void getSearchedLocation(LatLng location) {
