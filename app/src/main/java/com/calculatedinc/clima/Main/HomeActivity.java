@@ -9,8 +9,8 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,7 +21,6 @@ import com.calculatedinc.clima.Manager.Utils;
 import com.calculatedinc.clima.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
@@ -38,9 +37,13 @@ public class HomeActivity extends AppCompatActivity {
 
     // Calgary, Alberta 51.049999, -114.066666
 
+    private static final String TAG = "HOME";
+
     // UI Fields
     private View mDecorView;
-    private TextView locationNameTextView, dateTextView, temperatureTextView, climateTextView;
+    private RelativeLayout rootView;
+    private TextView locationNameTextView, dateTextView, temperatureTextView, feelsLikeTextView, climateTextView, pressureTextView, humidityTextView, windTextView;
+    private ImageView weatherIconImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,16 +56,39 @@ public class HomeActivity extends AppCompatActivity {
         this.mDecorView = getWindow().getDecorView();
         this.mDecorView.setOnSystemUiVisibilityChangeListener((i) -> mDecorView.setSystemUiVisibility(hideSystemBars()));
 
+        this.rootView = findViewById(R.id.rootView);
+
         this.locationNameTextView = findViewById(R.id.locationNameTextView);
         this.dateTextView = findViewById(R.id.dateTextView);
         this.temperatureTextView = findViewById(R.id.tempTextView);
+        this.feelsLikeTextView = findViewById(R.id.feelsLikeTexView);
         this.climateTextView = findViewById(R.id.climateTextView);
+        this.weatherIconImageView = findViewById(R.id.weatherIconImageView);
+        this.pressureTextView = findViewById(R.id.pressureTextView);
+        this.humidityTextView = findViewById(R.id.humidityTextView);
+        this.windTextView = findViewById(R.id.windSpeedTextView);
 
-        this.temperatureTextView.setText(Html.fromHtml("25<sup><small>°</small></sup>"));
-        this.dateTextView.setText(Utils.shared.getCurrentDate());
+        this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
+        this.updateUI(51.049999, -114.066666);
+    }
 
-        APIManager.shared.getWeatherData(51.049999, -114.066666);
-
+    private void updateUI(double latitude, double longitude) {
+        APIManager.shared.getWeatherData(latitude, longitude, (weather) -> {
+            int temp = (int)weather.temperature;
+            int feelsLikeTemp = (int)weather.feelsLike;
+            int pressure = (int)weather.pressure;
+            int humidity = (int)weather.humidity;
+            int windSpeed = (int)(weather.windSpeed * 3.6d);
+            this.temperatureTextView.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
+            this.feelsLikeTextView.setText(Html.fromHtml("Feels like " + feelsLikeTemp + "<sup><small>°</small></sup>"));
+            this.climateTextView.setText(weather.climate);
+            this.locationNameTextView.setText(weather.cityName + ", " + weather.country);
+            this.dateTextView.setText(Utils.shared.getCurrentDate());
+            this.pressureTextView.setText(Html.fromHtml(pressure + "<sup><small>hPa</small></sup>"));
+            this.humidityTextView.setText(Html.fromHtml(humidity + "<sup><small>%</small></sup>"));
+            this.windTextView.setText(Html.fromHtml(windSpeed + "<sup><small>km/h</small></sup>"));
+            if (weather.weatherIconBitmap != null) this.weatherIconImageView.setImageBitmap(weather.weatherIconBitmap);
+        });
     }
 
     @Override
@@ -125,13 +151,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void getLastLocation(Location location) {
-        if (location != null) {
-            Toast.makeText(this, "Latitude: " + location.getLatitude() +  "\nLongitude: " + location.getLongitude(), Toast.LENGTH_SHORT).show();
-        }
+        //if (location != null) this.updateUI(location.getLatitude(), location.getLatitude());
     }
 
     private void getSearchedLocation(LatLng location) {
-        Toast.makeText(this, "Latitude: " + location.latitude +  "\nLongitude: " + location.longitude, Toast.LENGTH_SHORT).show();
+       //this.updateUI(location.latitude, location.longitude);
     }
 
 }
