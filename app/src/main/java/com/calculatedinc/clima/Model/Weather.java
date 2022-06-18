@@ -1,10 +1,9 @@
 package com.calculatedinc.clima.Model;
 
 import android.graphics.Bitmap;
-
 import com.calculatedinc.clima.Manager.APIManager;
 
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
@@ -24,35 +23,88 @@ public class Weather {
     public int sunriseTime; // timestamp
     public int sunsetTime; // timestamp
 
+    public long timestamp;
+    public String timestampText;
+    public String dayOfWeek;
+
     public Bitmap weatherIconBitmap;
+    public String weatherIconString;
 
     public Weather(JSONObject rootObj) {
-        try {
-            JSONObject weatherObj = rootObj.getJSONArray("weather").getJSONObject(0);
-            JSONObject mainObj = rootObj.getJSONObject("main");
-            JSONObject windObj = rootObj.getJSONObject("wind");
-            JSONObject sysObj = rootObj.getJSONObject("sys");
-            this.climate = weatherObj.getString("main");
-            this.climateDesc = weatherObj.getString("description");
-            this.temperature = mainObj.getDouble("temp");
-            this.feelsLike = mainObj.getDouble("feels_like");
-            this.pressure = mainObj.getDouble("pressure");
-            this.humidity = mainObj.getDouble("humidity");
-            this.windSpeed = windObj.getDouble("speed");
-            this.country = sysObj.getString("country");
-            this.sunriseTime = sysObj.getInt("sunrise");
-            this.sunsetTime = sysObj.getInt("sunset");
-            this.cityName = rootObj.getString("name");
 
-            String iconLabel = weatherObj.getString("icon");
-            String iconURL = "https://openweathermap.org/img/wn/" + iconLabel + "@2x.png";
+        JSONArray weatherObjTemp = (rootObj.has("weather")) ? rootObj.optJSONArray("weather") : null;
+        JSONObject weatherObj = null;
+        if (weatherObjTemp != null) weatherObj = weatherObjTemp.optJSONObject(0);
+        JSONObject mainObj = (rootObj.has("main")) ? rootObj.optJSONObject("main") : null;
+        JSONObject windObj = (rootObj.has("wind")) ? rootObj.optJSONObject("wind") : null;
+        JSONObject sysObj =  (rootObj.has("sys")) ? rootObj.optJSONObject("sys") : null;
+
+        if (weatherObj != null && mainObj != null && windObj != null && sysObj != null) {
+            this.climate = (weatherObj.has("main")) ? weatherObj.optString("main", "") : "";
+            this.climateDesc = (weatherObj.has("description")) ? weatherObj.optString("description", "") : "";
+            this.temperature = (mainObj.has("temp")) ? mainObj.optDouble("temp", 0.0) : 0.0;
+            this.feelsLike = (mainObj.has("feels_like")) ? mainObj.optDouble("feels_like", 0.0) : 0.0;
+            this.pressure = (mainObj.has("pressure")) ? mainObj.optDouble("pressure", 0.0) : 0.0;
+            this.humidity = (mainObj.has("humidity")) ? mainObj.optDouble("humidity", 0.0) : 0.0;
+            this.windSpeed = (windObj.has("speed")) ? windObj.optDouble("speed", 0.0) : 0.0;
+            this.country = (sysObj.has("country")) ? sysObj.optString("country", "") : "";
+            this.sunriseTime = (sysObj.has("sunrise")) ? sysObj.optInt("sunrise", 0) : 0;
+            this.sunsetTime = (sysObj.has("sunset")) ? sysObj.optInt("sunset", 0) : 0;
+            this.cityName = (rootObj.has("name")) ? rootObj.optString("name", "") : "";
+            this.timestamp = (rootObj.has("dt")) ? rootObj.optLong("dt", 0) : 0;
+            this.timestampText = (rootObj.has("dt_txt")) ? rootObj.optString("dt_txt") : "";
+            this.dayOfWeek = "";
+
+            this.weatherIconString = (weatherObj.has("icon")) ? weatherObj.optString("icon") : "";
+            String iconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
             Bitmap bitmap;
             try {
                 bitmap = new APIManager.DownloadImage().execute(iconURL).get();
                 this.weatherIconBitmap = bitmap;
             } catch (ExecutionException | InterruptedException e) { e.printStackTrace(); this.weatherIconBitmap = null; }
+        } else {
+            this.climate = "";
+            this.climateDesc = "";
+            this.temperature = 0.0;
+            this.feelsLike = 0.0;
+            this.pressure = 0.0;
+            this.humidity = 0.0;
+            this.windSpeed = 0.0;
+            this.country = "";
+            this.sunriseTime = 0;
+            this.sunsetTime = 0;
+            this.cityName = "";
+            this.timestamp = 0;
+            this.timestampText = "";
+            this.dayOfWeek = "";
+            this.weatherIconString = "";
+            this.weatherIconBitmap = null;
+        }
+    }
 
-        } catch (JSONException e) { e.printStackTrace(); }
+    public Weather(double temperature, String weatherIconString, String dayOfWeek) {
+        this.climate = "";
+        this.climateDesc = "";
+        this.temperature = temperature;
+        this.feelsLike = 0.0;
+        this.pressure = 0.0;
+        this.humidity = 0.0;
+        this.windSpeed = 0.0;
+        this.country = "";
+        this.sunriseTime = 0;
+        this.sunsetTime = 0;
+        this.cityName = "";
+        this.timestamp = 0;
+        this.timestampText = "";
+        this.dayOfWeek = dayOfWeek;
+        this.weatherIconString = weatherIconString;
+        this.weatherIconBitmap = null;
+        String iconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
+        Bitmap bitmap;
+        try {
+            bitmap = new APIManager.DownloadImage().execute(iconURL).get();
+            this.weatherIconBitmap = bitmap;
+        } catch (ExecutionException | InterruptedException e) { e.printStackTrace(); this.weatherIconBitmap = null; }
     }
 
 }

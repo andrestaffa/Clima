@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dp">
+
+    <TextView
+        android:id="@+id/timeLabel"
+        android:layout_width="100dp"
+        android:layout_height="20dp"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="@font/poppins_light"
+        android:gravity="center"
+        android:text="10AM"
+        android:textColor="@color/white"
+        android:textSize="11sp" />
+
+    <ImageView
+        android:id="@+id/weatherIconImageView"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/timeLabel"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-10dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/night_background"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/temperatureLabel"
+        android:layout_width="100dp"
+        android:layout_height="20dp"
+        android:fontFamily="@font/poppins_light"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/weatherIconImageView"
+        android:layout_marginTop="-5dp"
+        android:gravity="center"
+        android:text="25"
+        android:textColor="@color/white"
+        android:textSize="11sp" />
+
+</RelativeLayout>

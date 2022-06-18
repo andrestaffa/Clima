@@ -7,7 +7,9 @@ import android.location.Location;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -15,9 +17,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.calculatedinc.clima.Manager.APIManager;
 import com.calculatedinc.clima.Manager.Utils;
+import com.calculatedinc.clima.Model.Weather;
 import com.calculatedinc.clima.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -30,8 +35,11 @@ import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -44,6 +52,10 @@ public class HomeActivity extends AppCompatActivity {
     private RelativeLayout rootView;
     private TextView locationNameTextView, dateTextView, temperatureTextView, feelsLikeTextView, climateTextView, pressureTextView, humidityTextView, windTextView;
     private ImageView weatherIconImageView;
+    private RecyclerView hourlyForecastRecyclerView, weeklyForecastRecyclerView;
+
+    // Current Weather
+    private Weather currentWeather = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +79,8 @@ public class HomeActivity extends AppCompatActivity {
         this.pressureTextView = findViewById(R.id.pressureTextView);
         this.humidityTextView = findViewById(R.id.humidityTextView);
         this.windTextView = findViewById(R.id.windSpeedTextView);
+        this.hourlyForecastRecyclerView = findViewById(R.id.hourlyForecastRecyclerView);
+        this.weeklyForecastRecyclerView = findViewById(R.id.weeklyForecastRecyclerView);
 
         this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
         this.updateUI(51.049999, -114.066666);
@@ -74,6 +88,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void updateUI(double latitude, double longitude) {
         APIManager.shared.getWeatherData(latitude, longitude, (weather) -> {
+            this.currentWeather = weather;
             int temp = (int)weather.temperature;
             int feelsLikeTemp = (int)weather.feelsLike;
             int pressure = (int)weather.pressure;
@@ -88,6 +103,33 @@ public class HomeActivity extends AppCompatActivity {
             this.humidityTextView.setText(Html.fromHtml(humidity + "<sup><small>%</small></sup>"));
             this.windTextView.setText(Html.fromHtml(windSpeed + "<sup><small>km/h</small></sup>"));
             if (weather.weatherIconBitmap != null) this.weatherIconImageView.setImageBitmap(weather.weatherIconBitmap);
+        });
+        this.setupForecastData(latitude, longitude);
+    }
+
+    private void setupForecastData(double latitude, double longitude) {
+        this.hourlyForecastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        this.weeklyForecastRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        APIManager.shared.getForecastData(latitude, longitude, (forecast) -> {
+            ArrayList<Weather> todayForecast = new ArrayList<Weather>();
+            if (this.currentWeather != null) todayForecast.add(this.currentWeather);
+            for (int i = 0; i < 8; i++) todayForecast.add(forecast.get(i));
+            this.hourlyForecastRecyclerView.setAdapter(new HourlyForecastAdapter(todayForecast));
+            ArrayList<Weather> weeklyForecast = new ArrayList<Weather>();
+            ArrayList<String> daysOfWeek = new ArrayList<String>(7);
+            for (int i = 0; i < forecast.size(); i++) {
+                if (i % 8 == 0) daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(i).timestamp, "EEEE"));
+            }
+            daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(forecast.size() - 1).timestamp, "EEEE"));
+            for (String day : daysOfWeek) {
+                List<Weather> dayForecast = forecast.stream().filter((weather) -> {
+                    return Utils.shared.getFormattedDateFromEpoch(weather.timestamp, "EEEE").equals(day);
+                }).collect(Collectors.toList());
+                double avgTemp = Utils.shared.getAverageTemperature(dayForecast);
+                String weatherIcon = Utils.shared.getMostFrequentWeatherIcon(dayForecast);
+                weeklyForecast.add(new Weather(avgTemp, weatherIcon, day));
+            }
+            this.weeklyForecastRecyclerView.setAdapter(new WeeklyForecastAdapter(weeklyForecast));
         });
     }
 
@@ -156,6 +198,88 @@ public class HomeActivity extends AppCompatActivity {
 
     private void getSearchedLocation(LatLng location) {
        //this.updateUI(location.latitude, location.longitude);
+    }
+
+    private static class HourlyForecastAdapter extends RecyclerView.Adapter<HourlyForecastAdapter.ViewHolder> {
+
+        final private ArrayList<Weather> mForecast;
+
+        public HourlyForecastAdapter(ArrayList<Weather> forecast) {
+            this.mForecast = forecast;
+        }
+
+        @NonNull
+        @Override
+        public HourlyForecastAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.hourly_forcast_layout_tile, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull HourlyForecastAdapter.ViewHolder holder, int position) {
+            holder.timeLabel.setText( (position == 0) ? "Now" : Utils.shared.getFormattedDateFromEpoch(this.mForecast.get(position).timestamp, "h:mm a"));
+            holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
+            int temp = (int) this.mForecast.get(position).temperature;
+            holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
+        }
+
+        @Override
+        public int getItemCount() { return this.mForecast.size(); }
+
+        private static class ViewHolder extends RecyclerView.ViewHolder {
+
+            public TextView timeLabel, temperatureLabel;
+            public ImageView weatherIconImageView;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.timeLabel = itemView.findViewById(R.id.timeLabel);
+                this.weatherIconImageView = itemView.findViewById(R.id.weatherIconImageView);
+                this.temperatureLabel = itemView.findViewById(R.id.temperatureLabel);
+            }
+        }
+
+    }
+
+    private static class WeeklyForecastAdapter extends RecyclerView.Adapter<WeeklyForecastAdapter.ViewHolder> {
+
+        final private ArrayList<Weather> mForecast;
+
+        public WeeklyForecastAdapter(ArrayList<Weather> forecast) {
+            this.mForecast = forecast;
+        }
+
+        @NonNull
+        @Override
+        public WeeklyForecastAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.weekly_forecast_layout_tile, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull WeeklyForecastAdapter.ViewHolder holder, int position) {
+            holder.dateLabel.setText( (position == 0) ? "Today" :  this.mForecast.get(position).dayOfWeek);
+            holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
+            int temp = (int) this.mForecast.get(position).temperature;
+            holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
+        }
+
+        @Override
+        public int getItemCount() { return this.mForecast.size(); }
+
+        private static class ViewHolder extends RecyclerView.ViewHolder {
+
+            public TextView dateLabel, temperatureLabel;
+            public ImageView weatherIconImageView;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.dateLabel = itemView.findViewById(R.id.dateLabel);
+                this.weatherIconImageView = itemView.findViewById(R.id.weatherIconImageView);
+                this.temperatureLabel = itemView.findViewById(R.id.temperatureLabel);
+            }
+        }
+
     }
 
 }
