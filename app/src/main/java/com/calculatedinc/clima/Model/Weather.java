@@ -33,8 +33,8 @@ public class Weather {
     public String timestampText;
     public String dayOfWeek;
 
-    public Bitmap weatherIconBitmap;
     public String weatherIconString;
+    public String weatherIconURL;
 
     public Weather(JSONObject rootObj) {
 
@@ -65,14 +65,8 @@ public class Weather {
             this.timestamp = (rootObj.has("dt")) ? rootObj.optLong("dt", 0) : 0;
             this.timestampText = (rootObj.has("dt_txt")) ? rootObj.optString("dt_txt", "") : "";
             this.dayOfWeek = "";
-
             this.weatherIconString = (weatherObj.has("icon")) ? weatherObj.optString("icon") : "";
-            String iconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
-            Bitmap bitmap;
-            try {
-                bitmap = new APIManager.DownloadImage().execute(iconURL).get();
-                this.weatherIconBitmap = bitmap;
-            } catch (ExecutionException | InterruptedException e) { e.printStackTrace(); this.weatherIconBitmap = null; }
+            this.weatherIconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
         } else {
             this.climate = "";
             this.climateDesc = "";
@@ -94,7 +88,7 @@ public class Weather {
             this.timestampText = "";
             this.dayOfWeek = "";
             this.weatherIconString = "";
-            this.weatherIconBitmap = null;
+            this.weatherIconURL = "";
         }
     }
 
@@ -119,13 +113,7 @@ public class Weather {
         this.timestampText = "";
         this.dayOfWeek = dayOfWeek;
         this.weatherIconString = weatherIconString;
-        this.weatherIconBitmap = null;
-        String iconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
-        Bitmap bitmap;
-        try {
-            bitmap = new APIManager.DownloadImage().execute(iconURL).get();
-            this.weatherIconBitmap = bitmap;
-        } catch (ExecutionException | InterruptedException e) { e.printStackTrace(); this.weatherIconBitmap = null; }
+        this.weatherIconURL = "https://openweathermap.org/img/wn/" + this.weatherIconString + "@2x.png";
     }
 
 }

@@ -34,6 +34,7 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,7 +112,7 @@ public class HomeActivity extends AppCompatActivity {
             this.pressureTextView.setText(Html.fromHtml(pressure + "<sup><small>hPa</small></sup>"));
             this.humidityTextView.setText(Html.fromHtml(humidity + "<sup><small>%</small></sup>"));
             this.windTextView.setText(Html.fromHtml(windSpeed + "<sup><small>km/h</small></sup>"));
-            if (weather.weatherIconBitmap != null) this.weatherIconImageView.setImageBitmap(weather.weatherIconBitmap);
+            Picasso.get().load(weather.weatherIconURL).into(this.weatherIconImageView);
             this.sunriseTextView.setText(Utils.shared.getFormattedDateFromEpoch(weather.sunriseTime + weather.timezone, "h:mm a"));
             this.sunsetTextView.setText(Utils.shared.getFormattedDateFromEpoch(weather.sunsetTime + weather.timezone, "h:mm a"));
             int lowTemp = (int) weather.lowTemp;
@@ -251,7 +252,7 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull HourlyForecastAdapter.ViewHolder holder, int position) {
             holder.timeLabel.setText( (position == 0) ? "Now" : Utils.shared.getFormattedDateFromEpoch(this.mForecast.get(position).timestamp + this.mForecast.get(0).timezone, "h:mm a"));
-            holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
+            Picasso.get().load(this.mForecast.get(position).weatherIconURL).into(holder.weatherIconImageView);
             int temp = (int) this.mForecast.get(position).temperature;
             holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
         }
@@ -292,7 +293,7 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull WeeklyForecastAdapter.ViewHolder holder, int position) {
             holder.dateLabel.setText((position == 0) ? "Today" : this.mForecast.get(position).dayOfWeek);
-            holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
+            Picasso.get().load(this.mForecast.get(position).weatherIconURL).into(holder.weatherIconImageView);
             int temp = (int) this.mForecast.get(position).temperature;
             holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
         }

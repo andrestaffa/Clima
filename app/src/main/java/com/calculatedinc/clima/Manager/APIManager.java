@@ -77,20 +77,4 @@ public final class APIManager {
         });
     }
 
-    public static class DownloadImage extends AsyncTask<String, Void, Bitmap> {
-        @Override
-        protected Bitmap doInBackground(String... strings) {
-            String urlDisplay = strings[0];
-            Bitmap bitmapImage = null;
-            try {
-                InputStream in = new java.net.URL(urlDisplay).openStream();
-                bitmapImage = BitmapFactory.decodeStream(in);
-            } catch (Exception e) {
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
-            }
-            return bitmapImage;
-        }
-    }
-
 }
