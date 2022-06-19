@@ -38,6 +38,7 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class HomeActivity extends AppCompatActivity {
@@ -54,6 +55,8 @@ public class HomeActivity extends AppCompatActivity {
     private TextView locationNameTextView, dateTextView, temperatureTextView, feelsLikeTextView, climateTextView, pressureTextView, humidityTextView, windTextView;
     private ImageView weatherIconImageView;
     private RecyclerView hourlyForecastRecyclerView, weeklyForecastRecyclerView;
+    private TextView sunriseTextView, sunsetTextView, lowTempTextView, highTempTextView, visibilityTextView;
+    private ImageView windDirectionImageView;
 
     // Current Weather
     private Weather currentWeather = null;
@@ -82,22 +85,14 @@ public class HomeActivity extends AppCompatActivity {
         this.windTextView = findViewById(R.id.windSpeedTextView);
         this.hourlyForecastRecyclerView = findViewById(R.id.hourlyForecastRecyclerView);
         this.weeklyForecastRecyclerView = findViewById(R.id.weeklyForecastRecyclerView);
+        this.sunriseTextView = findViewById(R.id.sunriseTextView);
+        this.sunsetTextView = findViewById(R.id.sunsetTextView);
+        this.lowTempTextView = findViewById(R.id.lowTempTextView);
+        this.highTempTextView = findViewById(R.id.highTempTextView);
+        this.visibilityTextView = findViewById(R.id.visibilityTextView);
+        this.windDirectionImageView = findViewById(R.id.windDirectionImageView);
 
         this.updateUI(51.049999, -114.066666);
-    }
-
-    private void updateBackground(long timezoneOffset) {
-        String currentHourString = Utils.shared.getFormattedDateFromEpoch(timezoneOffset, "HH");
-        int currentHour = Integer.parseInt(currentHourString);
-        if (currentHour >= 0 && currentHour < 6) {
-            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
-        } else if (currentHour >= 6 && currentHour < 12) {
-            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.morning_background));
-        } else if (currentHour >= 12 && currentHour < 18) {
-            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.day_background));
-        } else if (currentHour >= 18) {
-            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.evening_background));
-        }
     }
 
     private void updateUI(double latitude, double longitude) {
@@ -117,9 +112,32 @@ public class HomeActivity extends AppCompatActivity {
             this.humidityTextView.setText(Html.fromHtml(humidity + "<sup><small>%</small></sup>"));
             this.windTextView.setText(Html.fromHtml(windSpeed + "<sup><small>km/h</small></sup>"));
             if (weather.weatherIconBitmap != null) this.weatherIconImageView.setImageBitmap(weather.weatherIconBitmap);
+            this.sunriseTextView.setText(Utils.shared.getFormattedDateFromEpoch(weather.sunriseTime + weather.timezone, "h:mm a"));
+            this.sunsetTextView.setText(Utils.shared.getFormattedDateFromEpoch(weather.sunsetTime + weather.timezone, "h:mm a"));
+            int lowTemp = (int) weather.lowTemp;
+            int highTemp = (int) weather.highTemp;
+            this.lowTempTextView.setText(Html.fromHtml(lowTemp + "<sup><small>°</small></sup>"));
+            this.highTempTextView.setText(Html.fromHtml(highTemp + "<sup><small>°</small></sup>"));
+            this.visibilityTextView.setText(String.format(Locale.getDefault(), "%.2f", weather.visibility / 1000d) + " km");
+            this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, 150d));
+            this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, weather.windDirection));
             this.updateBackground(weather.timestamp + weather.timezone);
         });
         this.setupForecastData(latitude, longitude);
+    }
+
+    private void updateBackground(long timezoneOffset) {
+        String currentHourString = Utils.shared.getFormattedDateFromEpoch(timezoneOffset, "HH");
+        int currentHour = Integer.parseInt(currentHourString);
+        if (currentHour >= 0 && currentHour < 6) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
+        } else if (currentHour >= 6 && currentHour < 12) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.morning_background));
+        } else if (currentHour >= 12 && currentHour < 18) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.day_background));
+        } else if (currentHour >= 18) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.evening_background));
+        }
     }
 
     private void setupForecastData(double latitude, double longitude) {

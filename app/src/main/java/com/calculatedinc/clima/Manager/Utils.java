@@ -1,5 +1,10 @@
 package com.calculatedinc.clima.Manager;
 
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.widget.ImageView;
+
 import com.calculatedinc.clima.Model.Weather;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,6 +56,14 @@ public final class Utils {
         }
 
         return res;
+    }
+
+    public Bitmap rotateImageView(ImageView source, double angle) {
+        BitmapDrawable drawable = (BitmapDrawable) source.getDrawable();
+        Bitmap bitmap = drawable.getBitmap();
+        Matrix matrix = new Matrix();
+        matrix.postRotate((float)angle);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
 }
