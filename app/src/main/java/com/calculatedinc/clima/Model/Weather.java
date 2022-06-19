@@ -23,6 +23,7 @@ public class Weather {
     public int sunriseTime; // timestamp
     public int sunsetTime; // timestamp
 
+    public int timezone;
     public long timestamp;
     public String timestampText;
     public String dayOfWeek;
@@ -51,6 +52,7 @@ public class Weather {
             this.sunriseTime = (sysObj.has("sunrise")) ? sysObj.optInt("sunrise", 0) : 0;
             this.sunsetTime = (sysObj.has("sunset")) ? sysObj.optInt("sunset", 0) : 0;
             this.cityName = (rootObj.has("name")) ? rootObj.optString("name", "") : "";
+            this.timezone = (rootObj.has("timezone")) ? rootObj.optInt("timezone") : 0;
             this.timestamp = (rootObj.has("dt")) ? rootObj.optLong("dt", 0) : 0;
             this.timestampText = (rootObj.has("dt_txt")) ? rootObj.optString("dt_txt") : "";
             this.dayOfWeek = "";
@@ -74,6 +76,7 @@ public class Weather {
             this.sunriseTime = 0;
             this.sunsetTime = 0;
             this.cityName = "";
+            this.timezone = 0;
             this.timestamp = 0;
             this.timestampText = "";
             this.dayOfWeek = "";
@@ -94,6 +97,7 @@ public class Weather {
         this.sunriseTime = 0;
         this.sunsetTime = 0;
         this.cityName = "";
+        this.timezone = 0;
         this.timestamp = 0;
         this.timestampText = "";
         this.dayOfWeek = dayOfWeek;

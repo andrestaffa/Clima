@@ -2,8 +2,6 @@ package com.calculatedinc.clima.Manager;
 
 import com.calculatedinc.clima.Model.Weather;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,15 +14,9 @@ public final class Utils {
     public static Utils shared = new Utils();
     public Utils() {}
 
-    public String getCurrentDate() {
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("EEE, dd MMM h:mm a", Locale.getDefault());
-        return df.format(c);
-    }
-
     public String getFormattedDateFromEpoch(long epochTime, String dateFormat) {
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
-        sdf.setTimeZone(TimeZone.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         return sdf.format(new Date(epochTime * 1000));
     }
 

@@ -38,12 +38,13 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class HomeActivity extends AppCompatActivity {
 
-    // Calgary, Alberta 51.049999, -114.066666
+    // Calgary, Alberta: 51.049999, -114.066666
+    // Sydney, Australia: -33.865143, 151.209900
+    // London, GB: 51.509865, -0.118092
 
     private static final String TAG = "HOME";
 
@@ -82,8 +83,21 @@ public class HomeActivity extends AppCompatActivity {
         this.hourlyForecastRecyclerView = findViewById(R.id.hourlyForecastRecyclerView);
         this.weeklyForecastRecyclerView = findViewById(R.id.weeklyForecastRecyclerView);
 
-        this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
         this.updateUI(51.049999, -114.066666);
+    }
+
+    private void updateBackground(long timezoneOffset) {
+        String currentHourString = Utils.shared.getFormattedDateFromEpoch(timezoneOffset, "HH");
+        int currentHour = Integer.parseInt(currentHourString);
+        if (currentHour >= 0 && currentHour < 6) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.night_background));
+        } else if (currentHour >= 6 && currentHour < 12) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.morning_background));
+        } else if (currentHour >= 12 && currentHour < 18) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.day_background));
+        } else if (currentHour >= 18) {
+            this.rootView.setBackground(this.getResources().getDrawable(R.drawable.evening_background));
+        }
     }
 
     private void updateUI(double latitude, double longitude) {
@@ -98,11 +112,12 @@ public class HomeActivity extends AppCompatActivity {
             this.feelsLikeTextView.setText(Html.fromHtml("Feels like " + feelsLikeTemp + "<sup><small>°</small></sup>"));
             this.climateTextView.setText(weather.climate);
             this.locationNameTextView.setText(weather.cityName + ", " + weather.country);
-            this.dateTextView.setText(Utils.shared.getCurrentDate());
+            this.dateTextView.setText(Utils.shared.getFormattedDateFromEpoch(weather.timestamp + weather.timezone, "EEE, dd MMM h:mm a"));
             this.pressureTextView.setText(Html.fromHtml(pressure + "<sup><small>hPa</small></sup>"));
             this.humidityTextView.setText(Html.fromHtml(humidity + "<sup><small>%</small></sup>"));
             this.windTextView.setText(Html.fromHtml(windSpeed + "<sup><small>km/h</small></sup>"));
             if (weather.weatherIconBitmap != null) this.weatherIconImageView.setImageBitmap(weather.weatherIconBitmap);
+            this.updateBackground(weather.timestamp + weather.timezone);
         });
         this.setupForecastData(latitude, longitude);
     }
@@ -118,12 +133,12 @@ public class HomeActivity extends AppCompatActivity {
             ArrayList<Weather> weeklyForecast = new ArrayList<Weather>();
             ArrayList<String> daysOfWeek = new ArrayList<String>(7);
             for (int i = 0; i < forecast.size(); i++) {
-                if (i % 8 == 0) daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(i).timestamp, "EEEE"));
+                if (i % 8 == 0) daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(i).timestamp + this.currentWeather.timezone, "EEEE"));
             }
-            daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(forecast.size() - 1).timestamp, "EEEE"));
+            daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(forecast.size() - 1).timestamp + this.currentWeather.timezone, "EEEE"));
             for (String day : daysOfWeek) {
                 List<Weather> dayForecast = forecast.stream().filter((weather) -> {
-                    return Utils.shared.getFormattedDateFromEpoch(weather.timestamp, "EEEE").equals(day);
+                    return Utils.shared.getFormattedDateFromEpoch(weather.timestamp + this.currentWeather.timezone, "EEEE").equals(day);
                 }).collect(Collectors.toList());
                 double avgTemp = Utils.shared.getAverageTemperature(dayForecast);
                 String weatherIcon = Utils.shared.getMostFrequentWeatherIcon(dayForecast);
@@ -217,7 +232,7 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull HourlyForecastAdapter.ViewHolder holder, int position) {
-            holder.timeLabel.setText( (position == 0) ? "Now" : Utils.shared.getFormattedDateFromEpoch(this.mForecast.get(position).timestamp, "h:mm a"));
+            holder.timeLabel.setText( (position == 0) ? "Now" : Utils.shared.getFormattedDateFromEpoch(this.mForecast.get(position).timestamp + this.mForecast.get(0).timezone, "h:mm a"));
             holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
             int temp = (int) this.mForecast.get(position).temperature;
             holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
@@ -258,7 +273,7 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull WeeklyForecastAdapter.ViewHolder holder, int position) {
-            holder.dateLabel.setText( (position == 0) ? "Today" :  this.mForecast.get(position).dayOfWeek);
+            holder.dateLabel.setText((position == 0) ? "Today" : this.mForecast.get(position).dayOfWeek);
             holder.weatherIconImageView.setImageBitmap(this.mForecast.get(position).weatherIconBitmap);
             int temp = (int) this.mForecast.get(position).temperature;
             holder.temperatureLabel.setText(Html.fromHtml(temp + "<sup><small>°</small></sup>"));
