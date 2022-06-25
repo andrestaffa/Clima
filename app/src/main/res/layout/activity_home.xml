@@ -46,7 +46,7 @@
                 android:layout_marginStart="50dp"
                 android:layout_marginTop="60dp"
                 android:gravity="start"
-                android:text="Calgary, Alberta"
+                android:text="-"
                 android:textColor="@color/white"
                 android:fontFamily="@font/poppins_bold"
                 android:textSize="20sp"
@@ -61,7 +61,7 @@
                 android:layout_marginStart="0dp"
                 android:layout_marginTop="0dp"
                 android:gravity="start"
-                android:text="Sat, 28 May 10:00AM"
+                android:text="-"
                 android:textColor="@color/white"
                 android:fontFamily="@font/poppins_light"
                 android:textSize="13sp"
@@ -86,7 +86,7 @@
                 android:layout_marginTop="-20dp"
                 android:fontFamily="@font/poppins_extrabold"
                 android:gravity="center"
-                android:text="25°"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="50sp"
                 android:textStyle="bold" />
@@ -100,7 +100,7 @@
                 android:layout_marginTop="75dp"
                 android:fontFamily="@font/poppins_light"
                 android:gravity="center"
-                android:text="Sunny"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="normal" />
@@ -114,7 +114,7 @@
                 android:layout_marginTop="-5dp"
                 android:fontFamily="@font/poppins_light"
                 android:gravity="center"
-                android:text="Feels like 18"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="normal" />
@@ -128,7 +128,7 @@
                 android:layout_marginTop="50dp"
                 android:fontFamily="@font/poppins_bold"
                 android:gravity="center"
-                android:text="46 %"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -155,7 +155,7 @@
                 android:layout_toStartOf="@+id/humidityTextView"
                 android:fontFamily="@font/poppins_bold"
                 android:gravity="center"
-                android:text="10 %"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -183,7 +183,7 @@
                 android:layout_toEndOf="@+id/humidityTextView"
                 android:fontFamily="@font/poppins_bold"
                 android:gravity="center"
-                android:text="23 km/h"
+                android:text="-"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -469,15 +469,47 @@
 
         </RelativeLayout>
 
-            <RelativeLayout
-                android:id="@+id/locationLayout"
-                android:layout_width="350dp"
-                android:layout_height="100dp"
-                android:layout_below="@+id/statsLayout"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="25dp"
-                android:background="@android:color/transparent"></RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/locationLayout"
+            android:layout_width="350dp"
+            android:layout_height="250dp"
+            android:layout_below="@+id/statsLayout"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="25dp"
+            android:background="@drawable/corner_radius_layout">
 
+            <TextView
+                android:id="@+id/static_locationLabel"
+                android:layout_width="50dp"
+                android:layout_height="20dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/poppins_light"
+                android:gravity="center"
+                android:text="Location"
+                android:textColor="@color/white"
+                android:textSize="11sp" />
+
+            <fragment
+                android:id="@+id/map_fragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="315dp"
+                android:layout_height="200dp"
+                android:layout_below="@+id/static_locationLabel"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/bottomLayout"
+            android:layout_width="350dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/locationLayout"
+            android:layout_marginTop="25dp"
+            android:background="@android:color/transparent"></RelativeLayout>
 
         </RelativeLayout>
     </ScrollView>

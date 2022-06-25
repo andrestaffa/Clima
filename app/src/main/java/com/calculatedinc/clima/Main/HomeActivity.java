@@ -28,7 +28,13 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
@@ -42,7 +48,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     // Calgary, Alberta: 51.049999, -114.066666
     // Sydney, Australia: -33.865143, 151.209900
@@ -61,6 +67,10 @@ public class HomeActivity extends AppCompatActivity {
 
     // Current Weather
     private Weather currentWeather = null;
+
+    // Google Maps
+    private GoogleMap map;
+    private MarkerOptions startingPlace;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +103,7 @@ public class HomeActivity extends AppCompatActivity {
         this.visibilityTextView = findViewById(R.id.visibilityTextView);
         this.windDirectionImageView = findViewById(R.id.windDirectionImageView);
 
-        this.updateUI(51.049999, -114.066666);
+        this.updateUI( 51.049999, -114.066666);
     }
 
     private void updateUI(double latitude, double longitude) {
@@ -123,8 +133,9 @@ public class HomeActivity extends AppCompatActivity {
             this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, 150d));
             this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, weather.windDirection));
             this.updateBackground(weather.timestamp + weather.timezone);
+            this.setupForecastData(latitude, longitude);
         });
-        this.setupForecastData(latitude, longitude);
+        this.initializeGoogleMap(latitude, longitude);
     }
 
     private void updateBackground(long timezoneOffset) {
@@ -151,9 +162,7 @@ public class HomeActivity extends AppCompatActivity {
             this.hourlyForecastRecyclerView.setAdapter(new HourlyForecastAdapter(todayForecast));
             ArrayList<Weather> weeklyForecast = new ArrayList<Weather>();
             ArrayList<String> daysOfWeek = new ArrayList<String>(7);
-            for (int i = 0; i < forecast.size(); i++) {
-                if (i % 8 == 0) daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(i).timestamp + this.currentWeather.timezone, "EEEE"));
-            }
+            for (int i = 0; i < forecast.size(); i+= 8) daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(i).timestamp + this.currentWeather.timezone, "EEEE"));
             daysOfWeek.add(Utils.shared.getFormattedDateFromEpoch(forecast.get(forecast.size() - 1).timestamp + this.currentWeather.timezone, "EEEE"));
             for (String day : daysOfWeek) {
                 List<Weather> dayForecast = forecast.stream().filter((weather) -> {
@@ -165,6 +174,25 @@ public class HomeActivity extends AppCompatActivity {
             }
             this.weeklyForecastRecyclerView.setAdapter(new WeeklyForecastAdapter(weeklyForecast));
         });
+    }
+
+    private void initializeGoogleMap(double latitude, double longitude) {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+            LatLng startingPos = new LatLng(latitude, longitude);
+            this.startingPlace = new MarkerOptions().position(startingPos);
+        }
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        if (this.startingPlace != null) {
+            this.map = googleMap;
+            this.map.addMarker(this.startingPlace);
+            LatLngBounds latLngBounds = new LatLngBounds(this.startingPlace.getPosition(), this.startingPlace.getPosition());
+            this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngBounds.getCenter(), 12));
+        }
     }
 
     @Override
