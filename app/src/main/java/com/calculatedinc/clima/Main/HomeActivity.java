@@ -62,7 +62,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView locationNameTextView, dateTextView, temperatureTextView, feelsLikeTextView, climateTextView, pressureTextView, humidityTextView, windTextView;
     private ImageView weatherIconImageView;
     private RecyclerView hourlyForecastRecyclerView, weeklyForecastRecyclerView;
-    private TextView sunriseTextView, sunsetTextView, lowTempTextView, highTempTextView, visibilityTextView;
+    private TextView sunriseTextView, sunsetTextView, lowTempTextView, highTempTextView, visibilityTextView, windDirectionTextView;
     private ImageView windDirectionImageView;
 
     // Current Weather
@@ -102,8 +102,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.highTempTextView = findViewById(R.id.highTempTextView);
         this.visibilityTextView = findViewById(R.id.visibilityTextView);
         this.windDirectionImageView = findViewById(R.id.windDirectionImageView);
+        this.windDirectionTextView = findViewById(R.id.static_windDirectionTextView);
 
-        this.updateUI( 51.049999, -114.066666);
+        this.updateUI(51.049999, -114.066666);
     }
 
     private void updateUI(double latitude, double longitude) {
@@ -132,6 +133,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.visibilityTextView.setText(String.format(Locale.getDefault(), "%.2f", weather.visibility / 1000d) + " km");
             this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, 150d));
             this.windDirectionImageView.setImageBitmap(Utils.shared.rotateImageView(this.windDirectionImageView, weather.windDirection));
+            this.windDirectionTextView.setText(Utils.shared.getWindDirection(weather.windDirection));
             this.updateBackground(weather.timestamp + weather.timezone);
             this.setupForecastData(latitude, longitude);
         });

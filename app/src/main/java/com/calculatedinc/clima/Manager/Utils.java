@@ -66,4 +66,25 @@ public final class Utils {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
+    public String getWindDirection(double degree) {
+        if (degree >= 0.0 && degree <= 10.0) return "N";
+        else if (degree > 10.0 && degree <= 30.0) return "N/NE";
+        else if (degree > 30.0 && degree <= 50.0) return "NE";
+        else if (degree > 50.0 && degree <= 70.0) return "E/NE";
+        else if (degree > 70.0 && degree <= 100.0) return "E";
+        else if (degree > 100.0 && degree <= 120.0) return "E/SE";
+        else if (degree > 120.0 && degree <= 140.0) return "SE";
+        else if (degree > 140.0 && degree <= 160.0) return "S/SE";
+        else if (degree > 160.0 && degree <= 190.0) return "S";
+        else if (degree > 190.0 && degree <= 210.0) return "S/SW";
+        else if (degree > 210.0 && degree <= 230.0) return "SW";
+        else if (degree > 230.0 && degree <= 250.0) return "W/SW";
+        else if (degree > 250.0 && degree <= 280.0) return "W";
+        else if (degree > 280.0 && degree <= 300.0) return "W/NW";
+        else if (degree > 300.0 && degree <= 320.0) return "NW";
+        else if (degree > 320.0 && degree <= 340.0) return "N/NW";
+        else if (degree > 340.0 && degree <= 360.0) return "N";
+        else return "Wind Direction";
+    }
+
 }
